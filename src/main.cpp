@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <tuple>
 #include "../include/Matrix.h"
 
@@ -8,9 +9,31 @@ Matrix *buildMatrix();
 
 int main(int argc, char const *argv[])
 {
-  Matrix *matrix = buildMatrix();
+  Matrix matrix = Matrix();
+  Matrix matrixB = Matrix();
 
-  cout << matrix->toString();
+  for (int i = 1; i <= 2; i++) {
+    Matrix *matrix = buildMatrix();
+
+    fstream outputFile;
+    outputFile.open("tmp/data-matrix.dat", ios::out | ios::binary);
+
+    if (!outputFile)
+    {
+      throw new invalid_argument("Falha ao abrir o arquivo.");
+      return 1;
+    }
+
+    outputFile.write((char*) &matrix, sizeof(Matrix*));
+    outputFile.close();
+  }
+
+  // fstream inputFile;
+  // inputFile.open("tmp/data-matrix.dat", ios::in | ios::binary);
+  // inputFile.read((char*) &readedMatrix, sizeof(Matrix*));
+  // inputFile.close();
+
+  // cout << readedMatrix->toString();
 
   return 0;
 }

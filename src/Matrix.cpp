@@ -1,5 +1,13 @@
 #include "../include/Matrix.h"
 #include <cstdlib>
+#include <ctime>
+
+Matrix::Matrix()
+{
+  this->rows = 0;
+  this->columns = 0;
+  this->data = nullptr;
+}
 
 Matrix::Matrix(int rows, int columns)
 {

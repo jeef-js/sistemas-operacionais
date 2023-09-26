@@ -11,6 +11,7 @@ private:
   int **data;
 
 public:
+  Matrix();
   Matrix(int, int);
   ~Matrix();
 
