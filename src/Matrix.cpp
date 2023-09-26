@@ -36,11 +36,11 @@ void Matrix::randomFill()
 {
   for (int i = 0; i < this->rows; i++)
   {
-    srand((unsigned)time(NULL));
+    srand((unsigned)time(NULL) + clock());
 
     for (int j = 0; j < this->columns; j++)
     {
-      this->data[i][j] = rand();
+      this->data[i][j] = (rand() % 100);
     }
   }
 }
