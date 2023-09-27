@@ -9,14 +9,15 @@ Matrix *buildMatrix();
 
 int main(int argc, char const *argv[])
 {
-  Matrix matrix = Matrix();
-  Matrix matrixB = Matrix();
-
   for (int i = 1; i <= 2; i++) {
     Matrix *matrix = buildMatrix();
 
+    std::string FILE_NAME = "tmp/data-matrix_";
+    FILE_NAME.append(to_string(i));
+    FILE_NAME.append(".dat");
+    
     fstream outputFile;
-    outputFile.open("tmp/data-matrix.dat", ios::out | ios::binary);
+    outputFile.open(FILE_NAME, ios::out | ios::binary);
 
     if (!outputFile)
     {
