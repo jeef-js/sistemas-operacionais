@@ -27,7 +27,7 @@ public:
 
   std::string toString();
 
-  int operator*(const Matrix &);
+  Matrix *operator*(const Matrix &);
 };
 
 #endif // MATRIX_H

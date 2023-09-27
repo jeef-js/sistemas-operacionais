@@ -83,8 +83,3 @@ std::string Matrix::toString()
 
   return matrix_str;
 }
-
-int Matrix::operator*(const Matrix &other)
-{
-  return 13;
-}

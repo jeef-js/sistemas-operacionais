@@ -2,62 +2,52 @@
 #include <fstream>
 #include <tuple>
 #include "../include/Matrix.h"
+#include "../include/MatricesBuilder.h"
 
 using namespace std;
 
-Matrix *buildMatrix();
-
 int main(int argc, char const *argv[])
 {
-  for (int i = 1; i <= 2; i++) {
-    Matrix *matrix = buildMatrix();
+  cout << "Iniciando geração de matrizes" << endl;
 
-    std::string FILE_NAME = "tmp/data-matrix_";
-    FILE_NAME.append(to_string(i));
-    FILE_NAME.append(".dat");
-    
-    fstream outputFile;
-    outputFile.open(FILE_NAME, ios::out | ios::binary);
+  buildMatrices();
 
-    if (!outputFile)
-    {
-      throw new invalid_argument("Falha ao abrir o arquivo.");
-      return 1;
-    }
+  cout << "Matrizes geradas com sucesso." << endl;
 
-    outputFile.write((char*) &matrix, sizeof(Matrix*));
-    outputFile.close();
-  }
+  cout << "Lendo a primeira matriz..." << endl;
 
-  // fstream inputFile;
-  // inputFile.open("tmp/data-matrix.dat", ios::in | ios::binary);
-  // inputFile.read((char*) &readedMatrix, sizeof(Matrix*));
-  // inputFile.close();
+  Matrix *matrixA = new Matrix();
 
-  // cout << readedMatrix->toString();
+  fstream inputFile;
+  inputFile.open("tmp/data-matrix_1.dat", ios::in | ios::binary);
+  inputFile.read((char *)&matrixA, sizeof(Matrix *));
+  inputFile.close();
+
+  cout << "Leitura finalizada." << endl
+       << "====== Matriz A ======" << endl
+       << matrixA->toString() << endl
+       << "====================" << endl;
+
+  cout << "Lendo a segunda matriz..." << endl;
+
+  Matrix *matrixB = new Matrix();
+
+  inputFile.open("tmp/data-matrix_2.dat", ios::in | ios::binary);
+  inputFile.read((char *)&matrixB, sizeof(Matrix *));
+  inputFile.close();
+
+  cout << "Leitura finalizada." << endl
+       << "====== Matriz B ======" << endl
+       << matrixB->toString() << endl
+       << "====================" << endl;
+
+  cout << "Efetuando multiplicação..." << endl;
+
+  Matrix *matrixC = (*matrixA) * (*matrixB);
+
+  cout << "====== Matriz C ======" << endl
+       << matrixC->toString() << endl
+       << "====================" << endl;
 
   return 0;
-}
-
-Matrix *buildMatrix()
-{
-  tuple<int, int> matrixDimensions = make_tuple(0, 0);
-  int input;
-
-  cout << "Informe a quantidade de linhas: " << endl
-       << ">> ";
-  cin >> input;
-
-  get<0>(matrixDimensions) = input;
-
-  cout << "Informe a quantidade de colunas: " << endl
-       << ">> ";
-  cin >> input;
-
-  get<1>(matrixDimensions) = input;
-
-  Matrix *matrix = new Matrix(get<0>(matrixDimensions), get<1>(matrixDimensions));
-  matrix->randomFill();
-
-  return matrix;
 }
