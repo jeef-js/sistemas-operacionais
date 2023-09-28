@@ -1,36 +1,54 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
-#include <functional>
 #include <vector>
-#include "../include/Matrix.h"
+#include <tuple>
+#include <cmath>
+#include <functional>
+#include <iostream>
+#include "../include/ParallelThreadMultiply.h"
 
-void partialMultiply(int firstRow, int rowNumber)
+void partialMultiply(Matrix *matrixA, Matrix *matrixB, int *baseRow, int *baseColumn, unsigned int elementsPerThread)
 {
-
-}
-
-Matrix *parallelMultiply(Matrix *matrixA, Matrix *matrixB)
-{
-    int THREADS_NUMBER = 8;
-    int LINES_PER_THREAD[THREADS_NUMBER];
-
-    int index = 0;
-
-    for (int i = 0; i < matrixA->getRowCount(); i++)
+    while (elementsPerThread > 0)
     {
-        ++LINES_PER_THREAD[index];
-        index == 5 ? index = 0 : ++index;
+        int *row = matrixA->getData()[*baseRow];
+        int result = 0;
+
+        for (int j = 0; j < matrixB->getColumnCount(); j++)
+        {
+            result += row[j] * matrixB->getData()[j][*baseColumn];
+        }
+
+        std::cout << "[" << *baseRow << ", " << *baseColumn << "]: " << result << std::endl;
+        *baseRow == matrixA->getRowCount() - 1 ? *baseRow = 0 : ++*baseRow;
+        *baseColumn == matrixB->getColumnCount() - 1 ? *baseColumn = 0 : ++*baseColumn;
+        elementsPerThread--;
     }
 
-    std::vector<std::thread> workers;
+    delete baseRow;
+    delete baseColumn;
+}
 
-    int firstRow = 0;
+Matrix *parallelMultiply(Matrix *matrixA, Matrix *matrixB, unsigned int elementsPerThread)
+{
+    unsigned int THREADS_NUMBER = ceil((matrixA->getRowCount() * matrixB->getColumnCount()) / (double)elementsPerThread);
+
+    std::vector<std::thread> workers;
+    int baseRow = 0;
+    int baseColumn = 0;
 
     for (int i = 0; i < THREADS_NUMBER; i++)
     {
-        std::thread worker(std::bind(partialMultiply ,firstRow, LINES_PER_THREAD[i]));
-        firstRow += LINES_PER_THREAD[i];
+        int *baseRowPtr = new int(baseRow);
+        int *baseColumnPtr = new int(baseColumn);
+
+        std::thread worker([&]()
+                           { partialMultiply(matrixA, matrixB, baseRowPtr, baseColumnPtr, elementsPerThread); });
+        workers.push_back(std::move(worker));
+
+        baseRow = baseRow + ((elementsPerThread - baseRow) / matrixB->getColumnCount());
+        baseColumn = (baseColumn + elementsPerThread) % matrixB->getColumnCount();
     }
 
     for (int i = 0; i < workers.size(); i++)
@@ -38,33 +56,5 @@ Matrix *parallelMultiply(Matrix *matrixA, Matrix *matrixB)
         workers[i].join();
     }
 
-
-//   std::fstream outputFile;
-//   outputFile.open("data/resultado_multiplicacao_sequencial.txt", std::ios::out | std::ios::binary);
-//   outputFile << this->rows << " " << other.columns << std::endl;
-
-//   Matrix *result = new Matrix(this->rows, other.columns);
-//   auto startTime = std::chrono::high_resolution_clock::now();
-
-//   for (int i = 0; i < result->rows; i++)
-//   {
-//     for (int j = 0; j < result->columns; j++)
-//     {
-//       result->data[i][j] = 0;
-//       for (int k = 0; k < this->columns; k++)
-//       {
-//         result->data[i][j] += this->data[i][k] * other.data[k][j];
-//       }
-
-//       outputFile << "c" << i + 1 << j + 1 << " " << result->data[i][j] << std::endl;
-//     }
-//   }
-
-//   auto endTime = std::chrono::high_resolution_clock::now();
-//   auto duration = endTime - startTime;
-
-//   outputFile << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "ms";
-//   outputFile.close();
-
-  return nullptr;
+    return nullptr;
 }

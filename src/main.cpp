@@ -3,6 +3,7 @@
 #include <tuple>
 #include "../include/Matrix.h"
 #include "../include/MatricesBuilder.h"
+#include "../include/ParallelThreadMultiply.h"
 
 using namespace std;
 
@@ -48,6 +49,12 @@ int main(int argc, char const *argv[])
   cout << "====== Matriz C ======" << endl
        << matrixC->toString() << endl
        << "====================" << endl;
+
+  Matrix *matrixD = parallelMultiply(matrixA, matrixB, 8);
+
+  // cout << "====== Matriz D ======" << endl
+  //      << matrixD->toString() << endl
+  //      << "====================" << endl;
 
   return 0;
 }
