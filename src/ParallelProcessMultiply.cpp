@@ -3,22 +3,23 @@
 #include <thread>
 #include <vector>
 #include <tuple>
-#include <cmath>
-#include <functional>
 #include <iostream>
-#include "../include/ParallelThreadMultiply.h"
+#include <cmath>
+#include <unistd.h>
+#include <sys/wait.h>
+#include "../include/ParallelProcessMultiply.h"
 
-void partialMultiply(Matrix *matrixA, Matrix *matrixB, int baseRow, int baseColumn, unsigned int elementsPerThread, int threadIndex)
+void partialMultiply(Matrix *matrixA, Matrix *matrixB, int baseRow, int baseColumn, unsigned int elementsPerProcess, int processIndex)
 {
   std::fstream outputFile;
-  std::string FILE_NAME = "data/resultado_multiplicacao_paralela_";
-  FILE_NAME.append(std::to_string(threadIndex));
+  std::string FILE_NAME = "data/resultado_multiplicacao_paralela_processos_";
+  FILE_NAME.append(std::to_string(processIndex));
   FILE_NAME.append(".txt");
   outputFile.open(FILE_NAME, std::ios::out | std::ios::binary);
   outputFile << matrixA->getRowCount() << " " << matrixB->getColumnCount() << std::endl;
 
   auto startTime = std::chrono::high_resolution_clock::now();
-  while (elementsPerThread > 0)
+  while (elementsPerProcess > 0)
   {
     int *row = matrixA->getData()[baseRow];
     int result = 0;
@@ -45,7 +46,7 @@ void partialMultiply(Matrix *matrixA, Matrix *matrixB, int baseRow, int baseColu
       ++baseColumn;
     }
 
-    elementsPerThread--;
+    elementsPerProcess--;
   }
 
   auto endTime = std::chrono::high_resolution_clock::now();
@@ -55,20 +56,29 @@ void partialMultiply(Matrix *matrixA, Matrix *matrixB, int baseRow, int baseColu
   outputFile.close();
 }
 
-void parallelMultiply(Matrix *matrixA, Matrix *matrixB, unsigned int elementsPerThread)
+void parallelMultiply(Matrix *matrixA, Matrix *matrixB, unsigned int elementsPerProcess)
 {
-  unsigned int THREADS_NUMBER = ceil((matrixA->getRowCount() * matrixB->getColumnCount()) / (double)elementsPerThread);
+  unsigned int PROCESSES_NUMBER = ceil((matrixA->getRowCount() * matrixB->getColumnCount()) / (double)elementsPerProcess);
 
-  std::vector<std::thread> workers;
   int baseRow = 0;
   int baseColumn = 0;
 
-  for (int i = 0; i < THREADS_NUMBER; i++)
+  for (int i = 0; i < PROCESSES_NUMBER; i++)
   {
-    std::thread worker(partialMultiply, matrixA, matrixB, baseRow, baseColumn, elementsPerThread, i + 1);
-    workers.push_back(std::move(worker));
+    pid_t child_pid = fork();
 
-    for (int i = 0; i < elementsPerThread; i++)
+    if (child_pid == 0)
+    {
+      partialMultiply(matrixA, matrixB, baseRow, baseColumn, elementsPerProcess, i + 1);
+      exit(0);
+    }
+    else if (child_pid < 0)
+    {
+      std::cerr << "Fork failed." << std::endl;
+      exit(1);
+    }
+
+    for (int i = 0; i < elementsPerProcess; i++)
     {
       if (baseColumn == matrixB->getColumnCount() - 1)
       {
@@ -79,10 +89,5 @@ void parallelMultiply(Matrix *matrixA, Matrix *matrixB, unsigned int elementsPer
 
       ++baseColumn;
     }
-  }
-
-  for (int i = 0; i < workers.size(); i++)
-  {
-    workers[i].join();
   }
 }

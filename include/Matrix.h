@@ -26,8 +26,6 @@ public:
   int **getData();
 
   std::string toString();
-
-  Matrix *operator*(const Matrix &);
 };
 
 #endif // MATRIX_H
